@@ -31,8 +31,7 @@ class Qnetwork(nn.Module):
     return y
 
 class QModel(nn.Module):
-  """
-  The Qmodel takes as input an encoded state S[t] and the action taken in that state a[t] as
+  """The Qmodel takes as input an encoded state S[t] and the action taken in that state a[t] as
   and predicts the qvalues for this state. Action is either one-hot encoded representation or 
   embedding representation, so it has shape equal to number_of_actions.
   """
