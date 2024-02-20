@@ -30,6 +30,23 @@ class Qnetwork(nn.Module):
     y = self.linear2(y)
     return y
 
+class QModel(nn.Module):
+  """
+  The Qmodel takes as input an encoded state S[t] and the action taken in that state a[t] as
+  and predicts the qvalues for this state. Action is either one-hot encoded representation or 
+  embedding representation, so it has shape equal to number_of_actions.
+  """
+  def __init__(self, encoder_embedding_size=512, action_size=9, number_of_actions=9):
+    super(QModel, self).__init__()
+    self.linear1 = nn.Linear(encoder_embedding_size + action_size, encoder_embedding_size)
+    self.linear2 = nn.Linear(encoder_embedding_size, number_of_actions)
+
+  def forward(self, state, action):
+    x = torch.cat( (state, action), dim=1)
+    y = F.relu(self.linear1(x))
+    y = self.linear2(y)
+    return y
+
 class CrossAttention(nn.Module):
   """Perform cross attention between state embedding and action embeddings.
   NOTE: state_dimension and action_dimension should be the same.
