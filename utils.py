@@ -1,6 +1,9 @@
 import torch
 from math import log
 import torch.nn.functional as F
+from tqdm import tqdm
+from mspacmandqn import DataPrep
+import numpy as np
 
 def policy(qvalues:torch.tensor, number_of_actions:int=9, eps:float=None) -> int:
   """This function creates an epsilon greedy policy if epsilon is provided.
@@ -32,3 +35,53 @@ def final_size(calculate_size, repeat:int, args:tuple) -> int:
     n_args = tuple([size, *args[1:]])
     size = calculate_size(*n_args)
   return size
+
+def random_play(env, num_of_games):
+    """
+    Play the mspacman with totaly random actions.
+      Arguments:
+        env: the environment to play
+        num_of_games (int): How many games should be played
+      Returns:
+        scores (list): List with scores achived in games
+    """
+    scores = []
+    for game in tqdm(range(num_of_games), desc="Playing…", ascii=False, ncols=75):
+      observation = env.reset()
+      score = 0
+      terminated = False
+      while not terminated:
+        # Random action
+        action = env.action_space.sample()
+        # Run one timestep
+        observation, reward, terminated, truncated, info = env.step(action)
+        score += reward
+      scores.append(score)
+    return scores
+
+
+def test_the_agent(env, agent, num_of_games):
+    """
+    Play the mspacman using an agent.
+      Arguments:
+        env: the environment to play
+        agent: an agent class
+        num_of_games (int): How many games should be played
+      Returns:
+        scores (list): List with scores achived in games
+    """
+    scores = []
+    for game in tqdm(range(num_of_games), desc="Playing…", ascii=False, ncols=75):
+      score = 0
+      observation = env.reset()
+      state = DataPrep.prepare_initial_state(observation).to(agent.DEVICE)
+      terminated = False
+      while not terminated:
+        action = agent.act(state)
+        next_state, reward, terminated, truncated, info = env.step(action)
+        next_state = DataPrep.prepare_multi_state(state, next_state).to(agent.DEVICE)
+        state = next_state
+        score += reward
+      scores.append(score)
+    print(f"Average score of the Agent is: {np.mean(scores)}")
+    return scores
