@@ -4,6 +4,7 @@ import torch.nn.functional as F
 from tqdm import tqdm
 from mspacmandqn.dataprep import DataPrep
 import numpy as np
+from math import log
 
 def policy(qvalues:torch.tensor, number_of_actions:int=9, eps:float=None) -> int:
   """This function creates an epsilon greedy policy if epsilon is provided.
@@ -85,3 +86,6 @@ def test_the_agent(env, agent, num_of_games):
       scores.append(score)
     print(f"Average score of the Agent is: {np.mean(scores)}")
     return scores
+
+def transform_reward(reward):
+    return log(reward, 1000) if reward > 0 else reward
