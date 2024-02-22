@@ -2,7 +2,7 @@ import torch
 from math import log
 import torch.nn.functional as F
 from tqdm import tqdm
-from mspacmandqn import DataPrep
+from mspacmandqn.dataprep import DataPrep
 import numpy as np
 
 def policy(qvalues:torch.tensor, number_of_actions:int=9, eps:float=None) -> int:
