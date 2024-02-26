@@ -11,7 +11,7 @@ class DataPrep:
     image = image[:172, :]
     # Downsample by factor of 2
     image = image[::2,::2]
-    return image
+    return image.astype(np.float32) / 255.0
 
   @classmethod
   def prepare_state(cls, state:np.array) -> np.array:
