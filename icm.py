@@ -14,14 +14,16 @@ class Encoder(nn.Module):
     self.conv2 = nn.Conv2d(conv_size, conv_size, kernel_size=kernel_size, stride=2, padding=1)
     self.conv3 = nn.Conv2d(conv_size, conv_size, kernel_size=kernel_size, stride=2, padding=1)
     self.conv4 = nn.Conv2d(conv_size, conv_size, kernel_size=kernel_size, stride=2, padding=1)
+    self.layer_norm = nn.LayerNorm(512)
 
   def forward(self, x):
       x = F.normalize(x)
-      y = F.elu(self.conv1(x))
-      y = F.elu(self.conv2(y))
-      y = F.elu(self.conv3(y))
-      y = F.elu(self.conv4(y))
+      y = F.relu(self.conv1(x))
+      y = F.relu(self.conv2(y))
+      y = F.relu(self.conv3(y))
+      y = F.relu(self.conv4(y))
       y = y.flatten(start_dim=1) #size N, embedding_size
+      y = self.layer_norm(y)
       return y
 
 class InverseModel(nn.Module):
