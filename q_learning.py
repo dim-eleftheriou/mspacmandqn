@@ -110,15 +110,17 @@ class AlternativeQNetwork(nn.Module):
   Calculates the q values for each state by performing cross attention between
   states and actions.
   """
-  def __init__(self, number_of_actions=9, cross_attention_embedding_size=128*6):
+  def __init__(self, number_of_actions=9, state_dimension=512,
+               action_dimension=128, query_dimension=128,
+               key_dimension=128, value_dimension=128,
+               num_heads=6):
+    
     super(AlternativeQNetwork, self).__init__()
-    self.MHCA = MultiHeadCrossAttentionModel(state_dimension=512,
-                                             action_dimension=128,
-                                             query_dimension=128,
-                                             key_dimension=128,
-                                             value_dimension=128,
-                                             num_heads=6)
-    self.linear1 = nn.Linear(cross_attention_embedding_size, 256)
+    self.cross_attention_embedding_size = value_dimension * num_heads
+    self.MHCA = MultiHeadCrossAttentionModel(state_dimension, action_dimension,
+                                             query_dimension, key_dimension, value_dimension,
+                                             num_heads)
+    self.linear1 = nn.Linear(self.cross_attention_embedding_size, 256)
     self.linear2 = nn.Linear(256, 128)
     self.linear3 = nn.Linear(128, number_of_actions)
 
