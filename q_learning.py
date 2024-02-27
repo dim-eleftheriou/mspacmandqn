@@ -5,50 +5,39 @@ import torch.nn.functional as F
 class Qnetwork(nn.Module):
   """ The architecture uses a CNN network to create emdeddings from images (encoding).
   The architecture of the network expects as input stacked frames (input_channels). Default value is 4.
-  ELU activation function is used for Convolutional and Dense Layers (not the last one).
+  RELU activation function is used for Convolutional and Dense Layers (not the last one).
   The output is an array representing the qvalues of the current state for each action (number_of_actions).
   """
   def __init__(self, input_channels=4, number_of_actions=9, conv_size=32, kernel_size=5, embedding_size=512):
     super(Qnetwork, self).__init__()
     self.conv1 = nn.Conv2d(in_channels=input_channels, out_channels=conv_size, kernel_size=kernel_size, stride=2, padding=1)
     self.conv2 = nn.Conv2d(conv_size, conv_size, kernel_size=kernel_size, stride=2, padding=1)
-    self.conv3 = nn.Conv2d(conv_size, conv_size, kernel_size=kernel_size, stride=2, padding=1)
-    self.conv4 = nn.Conv2d(conv_size, conv_size, kernel_size=kernel_size, stride=2, padding=1)
-    self.linear1 = nn.Linear(embedding_size, 128)
-    self.linear2 = nn.Linear(128, number_of_actions)
+    self.conv3 = nn.Conv2d(conv_size, 2*conv_size, kernel_size=kernel_size, stride=2, padding=1)
+    self.conv4 = nn.Conv2d(2*conv_size, 2*conv_size, kernel_size=kernel_size, stride=2, padding=1)
+    self.linear1 = nn.Linear(2*embedding_size, 512)
+    self.layer_norm1 = nn.LayerNorm(512)
+    self.linear2 = nn.Linear(512, 256)
+    self.layer_norm2 = nn.LayerNorm(256)
+    self.linear3 = nn.Linear(256, number_of_actions)
 
   def forward(self, x):
     x = F.normalize(x)
-    y = F.elu(self.conv1(x))
-    y = F.elu(self.conv2(y))
-    y = F.elu(self.conv3(y))
-    y = F.elu(self.conv4(y))
+    y = F.relu(self.conv1(x))
+    y = F.relu(self.conv2(y))
+    y = F.relu(self.conv3(y))
+    y = F.relu(self.conv4(y))
     y = y.flatten(start_dim=2)
     y = y.view(y.shape[0], -1, 32)
     y = y.flatten(start_dim=1)
-    y = F.elu(self.linear1(y))
-    y = self.linear2(y)
-    return y
-
-class QModel(nn.Module):
-  """The Qmodel takes as input an encoded state S[t] and the action taken in that state a[t] as
-  and predicts the qvalues for this state. Action is either one-hot encoded representation or 
-  embedding representation, so it has shape equal to number_of_actions.
-  """
-  def __init__(self, encoder_embedding_size=512, action_size=9, number_of_actions=9):
-    super(QModel, self).__init__()
-    self.linear1 = nn.Linear(encoder_embedding_size + action_size, encoder_embedding_size)
-    self.linear2 = nn.Linear(encoder_embedding_size, number_of_actions)
-
-  def forward(self, state, action):
-    x = torch.cat( (state, action), dim=1)
-    y = F.relu(self.linear1(x))
-    y = self.linear2(y)
+    y = F.relu(self.linear1(y))
+    y = self.layer_norm1(y)
+    y = F.relu(self.linear2(y))
+    y = self.layer_norm2(y)
+    y = self.linear3(y)
     return y
 
 class CrossAttention(nn.Module):
   """Perform cross attention between state embedding and action embeddings.
-  NOTE: state_dimension and action_dimension should be the same.
   NOTE: query_dimension and key_dimension should be the same.
   Queries are creted from states and states and values from actions.
     Arguments:
@@ -82,7 +71,6 @@ class CrossAttention(nn.Module):
 
 class MultiHeadCrossAttentionModel(nn.Module):
   """Performs multi head cross attention between state embedding and action embeddings.
-  NOTE: state_dimension and action_dimension should be the same.
   NOTE: query_dimension and key_dimension should be the same.
   Queries are creted from states and states and values from actions.
     Arguments:
