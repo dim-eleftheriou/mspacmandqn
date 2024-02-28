@@ -25,14 +25,26 @@ class DataPrep:
     tmp = state_.repeat((N, 1, 1))
     return tmp.unsqueeze(dim=0)
 
+  # @classmethod
+  # def prepare_multi_state(cls, state1:torch.Tensor, state2:np.array) -> np.array:
+  #   """This function is used for stacking the new frame into current state.
+  #   It will be used only in testing phase of the model"""
+  #   state1 = state1.clone()
+  #   tmp = torch.from_numpy(cls.preprocess(state2)).float()
+  #   state1[0][0] = state1[0][1]
+  #   state1[0][1] = state1[0][2]
+  #   state1[0][2] = state1[0][3]
+  #   state1[0][3] = tmp
+  #   return state1
+  
   @classmethod
   def prepare_multi_state(cls, state1:torch.Tensor, state2:np.array) -> np.array:
     """This function is used for stacking the new frame into current state.
     It will be used only in testing phase of the model"""
-    state1 = state1.clone()
+    state = state1.clone()
     tmp = torch.from_numpy(cls.preprocess(state2)).float()
-    state1[0][0] = state1[0][1]
-    state1[0][1] = state1[0][2]
-    state1[0][2] = state1[0][3]
-    state1[0][3] = tmp
-    return state1
+    state[0] = state1[1]
+    state[1] = state1[2]
+    state[2] = state1[3]
+    state[3] = tmp
+    return state
