@@ -106,8 +106,8 @@ class AlternativeQNetwork(nn.Module):
                                              query_dimension, key_dimension, value_dimension,
                                              num_heads)
     self.linear1 = nn.Linear(self.cross_attention_embedding_size, 256)
-    self.linear2 = nn.Linear(256, 128)
-    self.linear3 = nn.Linear(128, number_of_actions)
+    self.linear2 = nn.Linear(256, 256)
+    self.linear3 = nn.Linear(256, number_of_actions)
 
   def forward(self, state_embeddings, action_embeddings):
     x = self.MHCA(state_embeddings, action_embeddings)
