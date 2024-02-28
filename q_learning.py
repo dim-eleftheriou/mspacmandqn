@@ -16,20 +16,15 @@ class Qnetwork(nn.Module):
     self.bn2 = nn.BatchNorm2d(conv_size)
     self.conv3 = nn.Conv2d(conv_size, 2*conv_size, kernel_size=kernel_size, stride=2, padding=1)
     self.bn3 = nn.BatchNorm2d(2*conv_size)
-    self.conv4 = nn.Conv2d(2*conv_size, 2*conv_size, kernel_size=kernel_size, stride=2, padding=1)
-    self.bn4 = nn.BatchNorm2d(2*conv_size)
-    self.linear1 = nn.Linear(2*embedding_size, 512)
-    self.layer_norm1 = nn.LayerNorm(512)
+    self.linear1 = nn.Linear(5184, 512)
     self.linear2 = nn.Linear(512, number_of_actions)
 
   def forward(self, x):
     y = F.relu(self.bn1(self.conv1(x)))
     y = F.relu(self.bn2(self.conv2(y)))
     y = F.relu(self.bn3(self.conv3(y)))
-    y = F.relu(self.bn4(self.conv4(y)))
     y = y.flatten(start_dim=1)
     y = F.relu(self.linear1(y))
-    y = self.layer_norm1(y)
     y = self.linear2(y)
     return y
 
