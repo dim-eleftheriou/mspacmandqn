@@ -8,21 +8,21 @@ class Qnetwork(nn.Module):
   RELU activation function is used for Convolutional and Dense Layers (not the last one).
   The output is an array representing the qvalues of the current state for each action (number_of_actions).
   """
-  def __init__(self, input_channels=4, number_of_actions=9, conv_size=32, kernel_size=5, embedding_size=512):
+  def __init__(self, input_channels=4, number_of_actions=9):
     super(Qnetwork, self).__init__()
-    self.conv1 = nn.Conv2d(in_channels=input_channels, out_channels=conv_size, kernel_size=kernel_size, stride=2, padding=1)
-    self.bn1 = nn.BatchNorm2d(conv_size)
-    self.conv2 = nn.Conv2d(conv_size, conv_size, kernel_size=kernel_size, stride=2, padding=1)
-    self.bn2 = nn.BatchNorm2d(conv_size)
-    self.conv3 = nn.Conv2d(conv_size, 2*conv_size, kernel_size=kernel_size, stride=2, padding=1)
-    self.bn3 = nn.BatchNorm2d(2*conv_size)
-    self.linear1 = nn.Linear(5184, 512)
+    self.conv1 = nn.Conv2d(in_channels=input_channels, out_channels=32, kernel_size=8, stride=4, padding=1)
+    self.norm1 = nn.BatchNorm2d(32)
+    self.conv2 = nn.Conv2d(32, 64, kernel_size=5, stride=2, padding=1)
+    self.norm2 = nn.BatchNorm2d(64)
+    self.conv3 = nn.Conv2d(64, 64, kernel_size=3, stride=1, padding=1)
+    self.norm3 = nn.BatchNorm2d(64)
+    self.linear1 = nn.Linear(5760, 512)
     self.linear2 = nn.Linear(512, number_of_actions)
 
   def forward(self, x):
-    y = F.relu(self.bn1(self.conv1(x)))
-    y = F.relu(self.bn2(self.conv2(y)))
-    y = F.relu(self.bn3(self.conv3(y)))
+    y = F.relu(self.norm1(self.conv1(x)))
+    y = F.relu(self.norm2(self.conv2(y)))
+    y = F.relu(self.norm3(self.conv3(y)))
     y = y.flatten(start_dim=1)
     y = F.relu(self.linear1(y))
     y = self.linear2(y)
