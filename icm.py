@@ -34,8 +34,8 @@ class InverseModel(nn.Module):
   """
   def __init__(self, encoder_embedding_size= 512, number_of_actions=9):
     super(InverseModel, self).__init__()
-    self.linear1 = nn.Linear(2*encoder_embedding_size, 256)
-    self.linear2 = nn.Linear(256, number_of_actions)
+    self.linear1 = nn.Linear(2*encoder_embedding_size, encoder_embedding_size)
+    self.linear2 = nn.Linear(encoder_embedding_size, number_of_actions)
 
   def forward(self, state1, state2):
     x = torch.cat( (state1, state2) , dim=1)
@@ -50,10 +50,9 @@ class ForwardModel(nn.Module):
   and predicts the encoded state S[t+1]. Action is either one-hot encoded representation or 
   embedding representation, so it has shape equal to number_of_actions.
   """
-  def __init__(self, encoder_embedding_size=512, number_of_actions=128):
-    self.number_of_actions = number_of_actions
+  def __init__(self, encoder_embedding_size=512, action_embedding_size=128):
     super(ForwardModel, self).__init__()
-    self.linear1 = nn.Linear(encoder_embedding_size + number_of_actions, encoder_embedding_size)
+    self.linear1 = nn.Linear(encoder_embedding_size + action_embedding_size, encoder_embedding_size)
     self.linear2 = nn.Linear(encoder_embedding_size, encoder_embedding_size)
 
   def forward(self, state, action):
